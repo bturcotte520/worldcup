@@ -1,65 +1,89 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import type { Country } from "@/lib/countries";
+
+const CountrySelector = dynamic(() => import("@/components/CountrySelector"), {
+  ssr: false,
+});
 
 export default function Home() {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Country | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const handleSelect = (country: Country) => {
+    setSelected(country);
+  };
+
+  const handlePlay = () => {
+    if (!selected) return;
+    setConfirming(true);
+    setTimeout(() => {
+      router.push(`/game?team=${selected.code}`);
+    }, 200);
+  };
+
+  const handleBack = () => {
+    setSelected(null);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="relative flex flex-col w-full h-full overflow-hidden bg-[#0a0f1e]">
+      <CountrySelector onSelect={handleSelect} />
+
+      {/* Bottom sheet when a country is selected */}
+      {selected && (
+        <div
+          className="absolute bottom-0 left-0 right-0 z-20 transition-transform duration-300"
+          style={{
+            transform: "translateY(0)",
+            background: "linear-gradient(180deg, transparent 0%, rgba(10,15,30,0.95) 20%)",
+          }}
+        >
+          <div
+            className="mx-3 mb-3 rounded-3xl overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              backdropFilter: "blur(20px)",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className="flex items-center gap-4 p-4">
+              <span className="text-5xl">{selected.flag}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-white font-black text-lg leading-tight">{selected.name}</div>
+                <div className="text-white/50 text-sm">{selected.group}</div>
+                <div className="text-yellow-400 text-xs font-semibold mt-0.5">Selected ✓</div>
+              </div>
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-sm hover:bg-white/20 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="px-4 pb-4">
+              <button
+                onClick={handlePlay}
+                disabled={confirming}
+                className="w-full py-4 rounded-2xl font-black text-black text-lg tracking-wide transition-transform active:scale-95 disabled:opacity-70"
+                style={{
+                  background: confirming
+                    ? "linear-gradient(135deg, #ccb000, #cc8000)"
+                    : "linear-gradient(135deg, #FFE000, #FFA500)",
+                  boxShadow: "0 4px 24px rgba(255, 200, 0, 0.45)",
+                }}
+              >
+                {confirming ? "Loading..." : `⚽ PLAY AS ${selected.name.toUpperCase()}`}
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }
