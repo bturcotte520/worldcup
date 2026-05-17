@@ -163,8 +163,10 @@ function updateAI(
 ): void {
   const ai = state.ai;
   const ball = state.ball;
-  const playerGoal = goals[1]; // AI attacks right goal (player defends right)
-  const aiGoal = goals[0]; // AI defends left goal
+  // goals[0] = left goal  → ball here = AI scores (goal_ai)
+  // goals[1] = right goal → ball here = player scores (goal_player)
+  const aiTargetGoal = goals[0]; // AI attacks left goal to score
+  const aiDefendGoal = goals[1]; // AI defends right goal
 
   ai.kickCooldown = Math.max(0, ai.kickCooldown - 1);
 
@@ -179,10 +181,10 @@ function updateAI(
     targetX = ball.pos.x;
     targetY = ball.pos.y;
   } else {
-    // Defensive positioning
-    const defensiveX = aiGoal.x + aiGoal.width + 40 + (ball.pos.x / field.width) * 80;
+    // Defensive positioning: sit between ball and the goal AI is defending
+    const defensiveX = aiDefendGoal.x - 50 - ((1 - ball.pos.x / field.width) * 60);
     const defensiveY = clamp(ball.pos.y, field.centerY - 60, field.centerY + 60);
-    targetX = defensiveX;
+    targetX = clamp(defensiveX, field.centerX, aiDefendGoal.x - 20);
     targetY = defensiveY;
   }
 
@@ -196,9 +198,9 @@ function updateAI(
 
   // Kick if close to ball
   if (dToBall < POSSESSION_DIST + 4 && ai.kickCooldown === 0) {
-    // Aim at player's goal (right side)
-    const goalCenterY = playerGoal.y + playerGoal.height / 2;
-    const aimX = playerGoal.x - ai.pos.x;
+    // Aim at left goal (AI scores there)
+    const goalCenterY = aiTargetGoal.y + aiTargetGoal.height / 2;
+    const aimX = aiTargetGoal.x + aiTargetGoal.width - ai.pos.x;
     const aimY = goalCenterY - ai.pos.y;
     const aimDir = normalize({ x: aimX, y: aimY });
 
