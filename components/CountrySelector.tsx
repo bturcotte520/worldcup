@@ -23,7 +23,7 @@ export default function CountrySelector({ onSelect }: Props) {
   }, [search, activeGroup]);
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0f1e] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#0a0f1e] text-white">
       {/* Header */}
       <div className="flex-none px-4 pt-safe-top pt-6 pb-4 bg-gradient-to-b from-[#0a0f1e] to-transparent">
         <div className="flex items-center gap-3 mb-1">
@@ -84,7 +84,7 @@ export default function CountrySelector({ onSelect }: Props) {
       </div>
 
       {/* Country grid */}
-      <div className="flex-1 overflow-y-auto px-4 pb-8">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
         {filtered.length === 0 ? (
           <div className="text-center text-white/40 py-12 text-sm">No countries found</div>
         ) : (
@@ -100,28 +100,15 @@ export default function CountrySelector({ onSelect }: Props) {
 }
 
 function CountryCard({ country, onSelect }: { country: Country; onSelect: (c: Country) => void }) {
-  const [pressed, setPressed] = useState(false);
-
   return (
     <button
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => {
-        setPressed(false);
-        onSelect(country);
-      }}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => {
-        setPressed(false);
-        onSelect(country);
-      }}
-      onMouseLeave={() => setPressed(false)}
+      onClick={() => onSelect(country)}
       className="relative overflow-hidden rounded-2xl p-3 text-left transition-transform active:scale-95"
       style={{
         background: `linear-gradient(135deg, ${country.primaryColor}33 0%, ${country.primaryColor}18 100%)`,
         borderWidth: 1,
         borderStyle: "solid",
-        borderColor: pressed ? country.primaryColor : `${country.primaryColor}44`,
-        transform: pressed ? "scale(0.95)" : "scale(1)",
+        borderColor: `${country.primaryColor}44`,
       }}
     >
       {/* Background flag color accent */}

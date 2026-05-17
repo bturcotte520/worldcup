@@ -6,18 +6,24 @@
   user-select: none;
 }
 
-html, body {
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+body {
   height: 100%;
   height: -webkit-fill-available;
   overflow: hidden;
   overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
 }
 
 /* Fix full-height on mobile browsers */
 body > * {
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  min-height: 100dvh;
+  height: 100dvh;
+  height: 100%;
 }
 
 /* Hide scrollbars */
