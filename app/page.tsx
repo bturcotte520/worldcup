@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { Country } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
 
 const CountrySelector = dynamic(() => import("@/components/CountrySelector"), {
   ssr: false,
@@ -13,10 +14,21 @@ export default function Home() {
   const router = useRouter();
   const [selected, setSelected] = useState<Country | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [randomClicks, setRandomClicks] = useState(0);
 
   const handleSelect = (country: Country) => {
     setSelected(country);
   };
+
+  // picks a random team
+  function pickRandom() {
+    var idx = Math.floor(Math.random() * COUNTRIES.length)
+    var team = COUNTRIES[idx]
+    console.log("random team picked", team)
+    setRandomClicks(randomClicks + 1)
+    setSelected(team)
+    return team
+  }
 
   const handlePlay = () => {
     if (!selected) return;
@@ -32,6 +44,11 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col w-full h-full overflow-hidden bg-[#0a0f1e]">
+      <div style={{display: "flex", justifyContent: "flex-end", padding: "12px 12px 0 12px"}}>
+        <button onClick={() => pickRandom()} style={{background: "purple", color: "white", padding: "8px 16px", borderRadius: "8px", fontWeight: "bold", fontSize: 14, border: "none", cursor: "pointer"}}>
+          🎲 Random Team {randomClicks > 0 ? `(${randomClicks})` : ''}
+        </button>
+      </div>
       <CountrySelector onSelect={handleSelect} />
 
       {/* Bottom sheet when a country is selected */}
