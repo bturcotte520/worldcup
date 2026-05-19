@@ -222,7 +222,6 @@ function CountryCard({ country, onSelect, isSelected, delay }: { country: Countr
         animationDelay: `${delay * 40}ms, ${delay * 40}ms`,
         animationFillMode: "backwards",
       }}
-      }}
     >
       {/* Shimmer overlay */}
       <div className="animate-shine rounded-2xl" />
