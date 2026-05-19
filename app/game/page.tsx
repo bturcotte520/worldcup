@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback } from "react";
+import { useEffect, useState, Suspense, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { COUNTRIES, type Country } from "@/lib/countries";
@@ -35,6 +35,7 @@ function GamePageContent() {
   const [finalScore, setFinalScore] = useState<{ player: number; ai: number } | null>(null);
   const [showIntro, setShowIntro] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const code = params.get("team");
@@ -43,6 +44,9 @@ function GamePageContent() {
     const ai = pickRandomCountry(player.code);
     setPlayerCountry(player);
     setAiCountry(ai);
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    };
   }, [params]);
 
   const handleIntroComplete = useCallback(() => {
@@ -60,7 +64,8 @@ function GamePageContent() {
 
   const handleChangeTeam = () => {
     setIsExiting(true);
-    setTimeout(() => {
+    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    exitTimerRef.current = setTimeout(() => {
       router.push("/");
     }, EXIT_TRANSITION_MS);
   };

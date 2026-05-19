@@ -23,7 +23,6 @@
 html {
   height: 100%;
   height: -webkit-fill-available;
-  scroll-behavior: smooth;
 }
 
 body {
@@ -383,6 +382,14 @@ canvas {
     transparent 100%
   );
   animation: shine 3s ease-in-out infinite;
+}
+
+.animate-shine-once::after {
+  animation: shine 1.5s ease-out forwards;
+}
+
+.animate-shine-once::after {
+  animation: shine 1.5s ease-out forwards;
 }
 
 .animate-pulse-soft-glow {

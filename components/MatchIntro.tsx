@@ -13,16 +13,23 @@ export default function MatchIntro({ playerCountry, aiCountry, onComplete }: Mat
   const [phase, setPhase] = useState<"slide-in" | "show" | "fade-out">("slide-in");
 
   useEffect(() => {
+    const completeRef = { current: false };
     const slideInTimer = setTimeout(() => setPhase("show"), 600);
     const fadeOutTimer = setTimeout(() => setPhase("fade-out"), 1200);
-    const completeTimer = setTimeout(() => onComplete(), 1500);
+    const completeTimer = setTimeout(() => {
+      if (!completeRef.current) {
+        completeRef.current = true;
+        onComplete();
+      }
+    }, 1500);
 
     return () => {
       clearTimeout(slideInTimer);
       clearTimeout(fadeOutTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- timers should only run once on mount
+  }, []);
 
   return (
     <div

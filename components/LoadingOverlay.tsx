@@ -14,42 +14,13 @@ export default function LoadingOverlay({ text = "Loading..." }: LoadingOverlayPr
       }}
     >
       <div className="flex flex-col items-center gap-4">
-        <div
-          className="text-6xl"
-          style={{
-            animation: "spin 1s linear infinite",
-          }}
-        >
+        <div className="text-6xl animate-spin">
           ⚽
         </div>
-        <div
-          className="text-white/80 text-lg font-semibold tracking-wide"
-          style={{
-            animation: "pulse 1.5s ease-in-out infinite",
-          }}
-        >
+        <div className="text-white/80 text-lg font-semibold tracking-wide animate-pulse" style={{ animationDuration: "1.5s" }}>
           {text}
         </div>
       </div>
-      <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 }
