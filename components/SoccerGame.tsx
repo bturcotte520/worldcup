@@ -17,7 +17,7 @@ interface Props {
 }
 
 const JOYSTICK_RADIUS = 50;
-const KICK_AREA_FRACTION = 0.42; // right 42% of screen = kick zone
+const KICK_AREA_FRACTION = 0.42;
 
 export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,10 +35,51 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
   const lastTimeRef = useRef<number>(0);
   const animFrameRef = useRef<number>(0);
   const gameEndedRef = useRef(false);
+  const prevScoreRef = useRef({ player: 0, ai: 0 });
+  const prevPhaseRef = useRef<string>("");
+  const prevKickoffPhaseRef = useRef(false);
+
   const [displayScore, setDisplayScore] = useState({ player: 0, ai: 0 });
   const [displayTime, setDisplayTime] = useState(180);
   const [displayHalf, setDisplayHalf] = useState(1);
   const [displayPhase, setDisplayPhase] = useState<string>("kickoff");
+  const [scorePulseKey, setScorePulseKey] = useState(0);
+  const [controlHintsVisible, setControlHintsVisible] = useState(true);
+  const [countdownValue, setCountdownValue] = useState("");
+  const [countdownKey, setCountdownKey] = useState(0);
+  const [goalFlash, setGoalFlash] = useState(false);
+  const [goalConfetti, setGoalConfetti] = useState(false);
+  const [goalTeamSlide, setGoalTeamSlide] = useState(false);
+  const [goalColorBg, setGoalColorBg] = useState(false);
+  const [showHalftime, setShowHalftime] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setControlHintsVisible(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (displayScore.player > prevScoreRef.current.player || displayScore.ai > prevScoreRef.current.ai) {
+      setScorePulseKey(k => k + 1);
+      setGoalFlash(true);
+      setGoalConfetti(true);
+      setGoalTeamSlide(true);
+      setGoalColorBg(true);
+      setTimeout(() => setGoalFlash(false), 600);
+      setTimeout(() => setGoalConfetti(false), 1500);
+      setTimeout(() => setGoalTeamSlide(false), 2000);
+      setTimeout(() => setGoalColorBg(false), 1500);
+    }
+    prevScoreRef.current = { ...displayScore };
+  }, [displayScore]);
+
+  useEffect(() => {
+    if (displayPhase === "halftime") {
+      setShowHalftime(true);
+    } else {
+      setShowHalftime(false);
+    }
+  }, [displayPhase]);
 
   const initGame = useCallback((canvas: HTMLCanvasElement) => {
     const w = canvas.width;
@@ -53,8 +94,6 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
 
   const drawField = useCallback((ctx: CanvasRenderingContext2D, field: FieldDimensions) => {
     const { width: W, height: H } = field;
-
-    // Grass gradient
     const grad = ctx.createLinearGradient(0, 0, W, H);
     grad.addColorStop(0, "#1a6b2e");
     grad.addColorStop(0.5, "#1e8035");
@@ -62,7 +101,6 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Grass stripes
     ctx.globalAlpha = 0.12;
     for (let i = 0; i < 8; i++) {
       if (i % 2 === 0) {
@@ -74,35 +112,25 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
 
     ctx.strokeStyle = "rgba(255,255,255,0.85)";
     ctx.lineWidth = 2;
-
-    // Border
     ctx.strokeRect(4, 4, W - 8, H - 8);
-
-    // Center line
     ctx.beginPath();
     ctx.moveTo(W / 2, 4);
     ctx.lineTo(W / 2, H - 4);
     ctx.stroke();
-
-    // Center circle
     ctx.beginPath();
     ctx.arc(W / 2, H / 2, Math.min(W, H) * 0.12, 0, Math.PI * 2);
     ctx.stroke();
-
-    // Center dot
     ctx.beginPath();
     ctx.arc(W / 2, H / 2, 3, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255,255,255,0.85)";
     ctx.fill();
 
-    // Penalty areas
     const penW = W * 0.14;
     const penH = H * 0.42;
     const penY = (H - penH) / 2;
     ctx.strokeRect(4, penY, penW, penH);
     ctx.strokeRect(W - 4 - penW, penY, penW, penH);
 
-    // Goal areas (smaller box)
     const gaW = W * 0.07;
     const gaH = H * 0.24;
     const gaY = (H - gaH) / 2;
@@ -112,20 +140,13 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
 
   const drawGoals = useCallback((ctx: CanvasRenderingContext2D, goals: [GoalState, GoalState]) => {
     for (const goal of goals) {
-      // Goal post shadow
       ctx.fillStyle = "rgba(0,0,0,0.3)";
       ctx.fillRect(goal.x + 2, goal.y + 2, goal.width, goal.height);
-
-      // Goal net
       ctx.fillStyle = "rgba(255,255,255,0.08)";
       ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
-
-      // Goal posts
       ctx.fillStyle = "#FFFFFF";
       ctx.fillRect(goal.x, goal.y, goal.width, 3);
       ctx.fillRect(goal.x, goal.y + goal.height - 3, goal.width, 3);
-
-      // Net lines
       ctx.strokeStyle = "rgba(255,255,255,0.3)";
       ctx.lineWidth = 0.5;
       for (let y = goal.y + 8; y < goal.y + goal.height; y += 8) {
@@ -147,13 +168,11 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
       isPlayer: boolean,
       hasBall: boolean
     ) => {
-      // Shadow
       ctx.beginPath();
       ctx.ellipse(x + 2, y + 3, radius * 0.9, radius * 0.5, 0, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(0,0,0,0.25)";
       ctx.fill();
 
-      // Body (jersey color)
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       const bodyGrad = ctx.createRadialGradient(x - 3, y - 3, 1, x, y, radius);
@@ -162,18 +181,15 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
       ctx.fillStyle = bodyGrad;
       ctx.fill();
 
-      // Jersey outline
       ctx.strokeStyle = country.secondaryColor;
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Flag emoji label
       ctx.font = `${radius * 0.9}px serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(country.flag, x, y);
 
-      // Player indicator ring
       if (isPlayer) {
         ctx.beginPath();
         ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
@@ -186,13 +202,11 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
   );
 
   const drawBall = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) => {
-    // Shadow
     ctx.beginPath();
     ctx.ellipse(x + 2, y + 3, radius * 0.9, radius * 0.5, 0, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,0,0,0.3)";
     ctx.fill();
 
-    // Ball
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     const ballGrad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
@@ -202,12 +216,10 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
     ctx.fillStyle = ballGrad;
     ctx.fill();
 
-    // Pentagons pattern (simplified)
     ctx.strokeStyle = "#222";
     ctx.lineWidth = 0.8;
     ctx.stroke();
 
-    // Center pentagon
     ctx.beginPath();
     ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2);
     ctx.fillStyle = "#333";
@@ -219,20 +231,58 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
 
     const { x: ox, y: oy } = input.joystickOrigin;
     const { x: cx, y: cy } = input.joystickCurrent;
+    const dx = cx - ox;
+    const dy = cy - oy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const t = Math.min(1, dist / JOYSTICK_RADIUS);
 
-    // Outer ring
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
+    const glowAlpha = 0.12 + t * 0.35;
+    const glowR = JOYSTICK_RADIUS + 15 + pulse * 8;
+    const glow = ctx.createRadialGradient(ox, oy, JOYSTICK_RADIUS - 5, ox, oy, glowR);
+    glow.addColorStop(0, `rgba(255, 224, 0, ${glowAlpha})`);
+    glow.addColorStop(1, "rgba(255, 224, 0, 0)");
+    ctx.beginPath();
+    ctx.arc(ox, oy, glowR, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+
     ctx.beginPath();
     ctx.arc(ox, oy, JOYSTICK_RADIUS, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255,255,255,0.1)";
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.strokeStyle = `rgba(255,255,255,${0.25 + t * 0.3})`;
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Inner knob
+    if (dist > 8) {
+      const nx = dx / (dist || 1);
+      const ny = dy / (dist || 1);
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 224, 0, ${0.4 + t * 0.5})`;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      for (let i = 0; i < 3; i++) {
+        const offset = 14 + i * 9;
+        const ax = ox + nx * offset;
+        const ay = oy + ny * offset;
+        const size = 5 - i;
+        ctx.beginPath();
+        ctx.moveTo(ax + nx * size, ay + ny * size);
+        ctx.lineTo(ax - nx * size * 0.5 - ny * size * 0.5, ay - ny * size * 0.5 + nx * size * 0.5);
+        ctx.moveTo(ax + nx * size, ay + ny * size);
+        ctx.lineTo(ax - nx * size * 0.5 + ny * size * 0.5, ay - ny * size * 0.5 - nx * size * 0.5);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     ctx.beginPath();
     ctx.arc(cx, cy, JOYSTICK_RADIUS * 0.42, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    const knobGrad = ctx.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, JOYSTICK_RADIUS * 0.42);
+    knobGrad.addColorStop(0, "rgba(255,255,255,0.6)");
+    knobGrad.addColorStop(1, "rgba(255,255,255,0.35)");
+    ctx.fillStyle = knobGrad;
     ctx.fill();
   }, []);
 
@@ -242,19 +292,49 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
       const y = field.height - 70;
       const r = 32;
 
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
+
+      ctx.save();
+      const glowR = isPressed ? r + 22 : r + 10 + pulse * 8;
+      const glowA = isPressed ? 0.5 : 0.12 + pulse * 0.12;
+      const glow = ctx.createRadialGradient(x, y, r - 2, x, y, glowR);
+      glow.addColorStop(0, `rgba(255, 200, 0, ${glowA})`);
+      glow.addColorStop(1, "rgba(255, 200, 0, 0)");
+      ctx.beginPath();
+      ctx.arc(x, y, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = glow;
+      ctx.fill();
+
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fillStyle = isPressed ? "rgba(255, 200, 0, 0.7)" : "rgba(255, 200, 0, 0.35)";
+      const btnGrad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, r);
+      btnGrad.addColorStop(0, isPressed ? "rgba(255, 230, 100, 0.85)" : "rgba(255, 220, 80, 0.5)");
+      btnGrad.addColorStop(1, isPressed ? "rgba(255, 200, 0, 0.7)" : "rgba(255, 200, 0, 0.35)");
+      ctx.fillStyle = btnGrad;
       ctx.fill();
-      ctx.strokeStyle = isPressed ? "rgba(255, 220, 0, 0.95)" : "rgba(255, 220, 0, 0.6)";
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = isPressed ? "rgba(255, 240, 150, 1)" : `rgba(255, 220, 0, ${0.4 + pulse * 0.2})`;
+      ctx.lineWidth = isPressed ? 3 : 2.5;
       ctx.stroke();
+
+      if (isPressed) {
+        ctx.beginPath();
+        ctx.arc(x, y, r + 12, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 220, 0, 0.4)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
 
       ctx.font = "bold 13px system-ui";
       ctx.fillStyle = isPressed ? "#000" : "rgba(255,255,255,0.9)";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+      if (!isPressed) {
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 3;
+      }
       ctx.fillText("KICK", x, y);
+      ctx.shadowBlur = 0;
+      ctx.restore();
     },
     []
   );
@@ -268,10 +348,13 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
         ctx.fillStyle = "#FFE000";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 6;
         ctx.fillText(state.half === 1 ? "KICK OFF!" : "2ND HALF!", field.centerX, field.centerY);
         ctx.font = "14px system-ui";
         ctx.fillStyle = "rgba(255,255,255,0.75)";
         ctx.fillText("Get ready...", field.centerX, field.centerY + 32);
+        ctx.shadowBlur = 0;
       }
 
       if (state.phase === "goal_player") {
@@ -281,10 +364,13 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
         ctx.fillStyle = "#FFE000";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 8;
         ctx.fillText("⚽ GOAL!", field.centerX, field.centerY - 15);
         ctx.font = "18px system-ui";
         ctx.fillStyle = "#FFFFFF";
         ctx.fillText(`${playerCountry.flag} ${playerCountry.name} scores!`, field.centerX, field.centerY + 28);
+        ctx.shadowBlur = 0;
       }
 
       if (state.phase === "goal_ai") {
@@ -294,10 +380,13 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
         ctx.fillStyle = "#FF4444";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 8;
         ctx.fillText("⚽ GOAL!", field.centerX, field.centerY - 15);
         ctx.font = "18px system-ui";
         ctx.fillStyle = "rgba(255,255,255,0.85)";
         ctx.fillText(`${aiCountry.flag} ${aiCountry.name} scores!`, field.centerX, field.centerY + 28);
+        ctx.shadowBlur = 0;
       }
 
       if (state.phase === "halftime") {
@@ -307,6 +396,8 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
         ctx.fillStyle = "#FFE000";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 6;
         ctx.fillText("HALF TIME", field.centerX, field.centerY - 20);
         ctx.font = "22px system-ui";
         ctx.fillStyle = "#FFFFFF";
@@ -315,6 +406,7 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
           field.centerX,
           field.centerY + 20
         );
+        ctx.shadowBlur = 0;
       }
     },
     [playerCountry, aiCountry]
@@ -331,10 +423,8 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
       const dt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.05);
       lastTimeRef.current = timestamp;
 
-      // Capture kick state before resetting
       const wasKickPressed = inputRef.current.kickPressed;
 
-      // Step game logic
       const newState = stepGame(
         stateRef.current,
         fieldRef.current,
@@ -343,17 +433,13 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
         dt
       );
       stateRef.current = newState;
-
-      // Reset kick after one frame
       inputRef.current.kickPressed = false;
 
-      // Update display state
       setDisplayScore({ ...newState.score });
       setDisplayTime(Math.ceil(newState.timeLeft));
       setDisplayHalf(newState.half);
       setDisplayPhase(newState.phase);
 
-      // Draw
       const field = fieldRef.current;
       drawField(ctx, field);
       drawGoals(ctx, goalsRef.current);
@@ -374,7 +460,6 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
     [drawField, drawGoals, drawPlayer, drawBall, drawJoystick, drawKickButton, drawOverlay, playerCountry, aiCountry, onGameEnd]
   );
 
-  // Touch handlers
   const handleTouchStart = useCallback((e: TouchEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
@@ -442,7 +527,6 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
     }
   }, []);
 
-  // Mouse support for desktop testing
   const handleMouseDown = useCallback((e: MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas || !fieldRef.current) return;
@@ -494,10 +578,15 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
     if (!canvas) return;
 
     const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      canvas.width = vw;
-      canvas.height = vh;
+      canvas.width = vw * dpr;
+      canvas.height = vh * dpr;
+      canvas.style.width = `${vw}px`;
+      canvas.style.height = `${vh}px`;
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.scale(dpr, dpr);
       initGame(canvas);
     };
 
@@ -537,57 +626,209 @@ export default function SoccerGame({ playerCountry, aiCountry, onGameEnd }: Prop
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
+  const truncateTeamName = (name: string) => {
+    return name.length > 8 ? name.slice(0, 7) + "…" : name;
+  };
+
+  const confettiPositions = [
+    { left: "10%", delay: "0ms", color: "#FFE000", size: 8 },
+    { left: "20%", delay: "100ms", color: "#FFA500", size: 6 },
+    { left: "35%", delay: "50ms", color: "#FFFFFF", size: 10 },
+    { left: "50%", delay: "150ms", color: "#FFE000", size: 7 },
+    { left: "65%", delay: "80ms", color: "#FFA500", size: 9 },
+    { left: "80%", delay: "200ms", color: "#FFFFFF", size: 6 },
+    { left: "90%", delay: "120ms", color: "#FFE000", size: 8 },
+  ];
+
   return (
     <div className="relative w-full h-full overflow-hidden bg-black select-none">
-      {/* HUD Overlay */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
-        {/* Player side */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-2xl">{playerCountry.flag}</span>
-          <div>
-            <div className="text-white text-xs font-semibold leading-none opacity-80">{playerCountry.name}</div>
-            <div className="text-yellow-300 text-2xl font-black leading-none">{displayScore.player}</div>
-          </div>
-        </div>
-
-        {/* Timer + Half */}
-        <div className="text-center">
-          <div
-            className="text-white font-black text-xl tabular-nums leading-none"
-            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
-          >
-            {formatTime(displayTime)}
-          </div>
-          <div className="text-yellow-400 text-xs font-bold uppercase tracking-wider">
-            {displayHalf === 1 ? "1st Half" : "2nd Half"}
-          </div>
-        </div>
-
-        {/* AI side */}
-        <div className="flex items-center gap-1.5">
-          <div className="text-right">
-            <div className="text-white text-xs font-semibold leading-none opacity-80">{aiCountry.name}</div>
-            <div className="text-red-400 text-2xl font-black leading-none text-right">{displayScore.ai}</div>
-          </div>
-          <span className="text-2xl">{aiCountry.flag}</span>
-        </div>
-      </div>
-
-      {/* Control hints */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between px-4 pb-2 pointer-events-none">
-        <div className="text-white/40 text-xs">
-          ← Drag to move
-        </div>
-        <div className="text-white/40 text-xs">
-          Tap to kick →
-        </div>
-      </div>
-
       <canvas
         ref={canvasRef}
-        className="block w-full h-full touch-none"
+        className="block w-full h-full"
         style={{ touchAction: "none" }}
       />
+
+      {/* Goal flash overlay */}
+      {goalFlash && (
+        <div className="absolute inset-0 z-30 pointer-events-none animate-whiteFlash bg-white" />
+      )}
+
+      {/* Goal color pulse background */}
+      {goalColorBg && (
+        <div className="absolute inset-0 z-20 pointer-events-none animate-colorPulseBg bg-gradient-to-t from-yellow-900/40 via-transparent to-yellow-900/20" />
+      )}
+
+      {/* Top HUD - Glass-morphism Pill */}
+      <div className="absolute top-3 left-0 right-0 z-20 flex justify-center pointer-events-none px-4">
+        <div className="glass-pill flex items-center gap-3 px-4 py-1.5 shadow-lg shadow-black/30">
+          {/* Player side */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-lg drop-shadow-md">{playerCountry.flag}</span>
+            <span
+              key={scorePulseKey}
+              className="text-yellow-300 text-xl font-black tabular-nums drop-shadow-md animate-scorePulse min-w-[1.5rem] text-center"
+            >
+              {displayScore.player}
+            </span>
+            <span
+              className="text-white text-xs font-semibold max-w-[5rem] truncate drop-shadow-md opacity-80"
+              title={playerCountry.name}
+            >
+              {truncateTeamName(playerCountry.name)}
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-white/15 mx-1" />
+
+          {/* Timer + Half */}
+          <div className="text-center px-1">
+            <div
+              className={`font-black text-lg tabular-nums drop-shadow-md leading-none transition-colors duration-300 ${
+                displayTime <= 30
+                  ? "text-red-400"
+                  : "text-white"
+              }`}
+            >
+              {formatTime(displayTime)}
+            </div>
+            <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded-full bg-white/10 text-yellow-400 text-[10px] font-bold uppercase tracking-wider">
+              {displayHalf === 1 ? "1H" : "2H"}
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-white/15 mx-1" />
+
+          {/* AI side */}
+          <div className="flex items-center gap-1.5">
+            <span
+              className="text-white text-xs font-semibold max-w-[5rem] truncate drop-shadow-md opacity-80"
+              title={aiCountry.name}
+            >
+              {truncateTeamName(aiCountry.name)}
+            </span>
+            <span
+              key={scorePulseKey + 100}
+              className="text-red-400 text-xl font-black tabular-nums drop-shadow-md animate-scorePulse min-w-[1.5rem] text-center"
+            >
+              {displayScore.ai}
+            </span>
+            <span className="text-lg drop-shadow-md">{aiCountry.flag}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Kickoff countdown overlay */}
+      {countdownValue && (
+        <div className="absolute inset-0 z-25 flex items-center justify-center pointer-events-none">
+          <div
+            key={countdownKey}
+            className="text-7xl font-black text-yellow-400 drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)] animate-scaleDown"
+          >
+            {countdownValue}
+          </div>
+        </div>
+      )}
+
+      {/* Goal celebration overlay */}
+      {(goalConfetti || goalTeamSlide) && (
+        <div className="absolute inset-0 z-25 flex flex-col items-center justify-center pointer-events-none">
+          {/* Confetti dots */}
+          {goalConfetti &&
+            confettiPositions.map((dot, i) => (
+              <div
+                key={`confetti-${i}`}
+                className="absolute animate-confetti rounded-full"
+                style={{
+                  left: dot.left,
+                  top: "35%",
+                  width: `${dot.size}px`,
+                  height: `${dot.size}px`,
+                  backgroundColor: dot.color,
+                  animationDelay: dot.delay,
+                }}
+              />
+            ))}
+
+          {/* GOAL text */}
+          {goalTeamSlide && (
+            <div className="animate-bounceIn">
+              <span className="text-6xl font-black text-gradient drop-shadow-[0_4px_16px_rgba(255,224,0,0.6)]">
+                GOAL!
+              </span>
+            </div>
+          )}
+
+          {/* Team name slide-up */}
+          {goalTeamSlide && (
+            <div className="animate-slideUpName mt-4 flex items-center gap-2 glass-card px-4 py-2">
+              <span className="text-2xl">{playerCountry.flag}</span>
+              <span className="text-white text-lg font-bold drop-shadow-md">
+                {playerCountry.name}
+              </span>
+              <span className="text-yellow-400 text-sm font-bold">scores!</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Halftime overlay */}
+      {showHalftime && (
+        <div className="absolute inset-0 z-25 flex items-center justify-center pointer-events-none">
+          <div className="animate-slideDown flex flex-col items-center">
+            <div className="glass-card px-8 py-6 shadow-xl shadow-black/40">
+              <div className="text-center">
+                <span className="text-3xl font-black text-gradient drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                  HALF TIME
+                </span>
+                <div className="flex items-center justify-center gap-4 mt-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{playerCountry.flag}</span>
+                    <span className="text-yellow-300 text-2xl font-black">
+                      {displayScore.player}
+                    </span>
+                  </div>
+                  <span className="text-white/30 text-xl">–</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-400 text-2xl font-black">
+                      {displayScore.ai}
+                    </span>
+                    <span className="text-2xl">{aiCountry.flag}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Control hints - Icon-based, fade out */}
+      <div
+        className={`absolute bottom-4 left-0 right-0 z-15 flex items-end justify-between px-5 pointer-events-none transition-opacity duration-1000 ${
+          controlHintsVisible ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="drop-shadow-md">
+            <path d="M7 10.5C7 10.5 9 9 12 9C15 9 17 10.5 17 10.5V18H7V10.5Z" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M7 18C7 19.6569 5.65685 21 4 21V14C5.65685 14 7 15.3431 7 17V18Z" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M17 18C17 19.6569 18.3431 21 20 21V14C18.3431 14 17 15.3431 17 17V18Z" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 3V9" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 6L12 3L15 6" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span className="text-white/50 text-xs drop-shadow-md">Drag to move</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-white/50 text-xs drop-shadow-md">Tap to kick</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="drop-shadow-md">
+            <circle cx="12" cy="12" r="8" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5"/>
+            <path d="M12 8V12L15 15" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 4L8 2" stroke="rgba(255,200,0,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M15 4L16 2" stroke="rgba(255,200,0,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 }
