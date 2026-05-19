@@ -7,6 +7,8 @@ import { COUNTRIES, type Country } from "@/lib/countries";
 import GameOverScreen from "@/components/GameOverScreen";
 import MatchIntro from "@/components/MatchIntro";
 
+const EXIT_TRANSITION_MS = 300;
+
 const SoccerGame = dynamic(() => import("@/components/SoccerGame"), {
   ssr: false,
   loading: () => (
@@ -60,7 +62,7 @@ function GamePageContent() {
     setIsExiting(true);
     setTimeout(() => {
       router.push("/");
-    }, 300);
+    }, EXIT_TRANSITION_MS);
   };
 
   if (!playerCountry || !aiCountry) {
@@ -77,7 +79,7 @@ function GamePageContent() {
       style={{
         opacity: isExiting ? 0 : 1,
         transform: isExiting ? "translateY(-10px)" : "translateY(0)",
-        transition: "opacity 0.3s ease-out, transform 0.3s ease-out",
+        transition: `opacity ${EXIT_TRANSITION_MS}ms ease-out, transform ${EXIT_TRANSITION_MS}ms ease-out`,
       }}
     >
       {showIntro && (
