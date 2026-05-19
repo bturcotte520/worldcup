@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { Country } from "@/lib/countries";
+import PageTransition from "@/components/PageTransition";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const CountrySelector = dynamic(() => import("@/components/CountrySelector"), {
   ssr: false,
@@ -31,16 +33,26 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col w-full h-full overflow-hidden bg-[#0a0f1e]">
+    <PageTransition className="relative flex flex-col w-full h-full overflow-hidden bg-[#0a0f1e] animated-gradient particles">
+      {confirming && <LoadingOverlay text="Loading match..." />}
       <CountrySelector onSelect={handleSelect} />
+
+      {/* Background overlay dim when sheet opens */}
+      {selected && (
+        <div
+          className="absolute inset-0 z-10 bg-black/40"
+          style={{
+            animation: "fadeIn 0.3s ease forwards",
+          }}
+        />
+      )}
 
       {/* Bottom sheet when a country is selected */}
       {selected && (
         <div
-          className="absolute bottom-0 left-0 right-0 z-20 transition-transform duration-300"
+          className="absolute bottom-0 left-0 right-0 z-20"
           style={{
-            transform: "translateY(0)",
-            background: "linear-gradient(180deg, transparent 0%, rgba(10,15,30,0.95) 20%)",
+            animation: "slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
           }}
         >
           <div
@@ -75,7 +87,9 @@ export default function Home() {
                   background: confirming
                     ? "linear-gradient(135deg, #ccb000, #cc8000)"
                     : "linear-gradient(135deg, #FFE000, #FFA500)",
-                  boxShadow: "0 4px 24px rgba(255, 200, 0, 0.45)",
+                  boxShadow: confirming
+                    ? "0 4px 24px rgba(255, 200, 0, 0.3)"
+                    : "0 4px 24px rgba(255, 200, 0, 0.45)",
                 }}
               >
                 {confirming ? "Loading..." : `⚽ PLAY AS ${selected.name.toUpperCase()}`}
@@ -84,6 +98,6 @@ export default function Home() {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }
