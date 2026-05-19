@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* ============================================
+   CSS Custom Properties (Design Tokens)
+   ============================================ */
+:root {
+  --bg-primary: #0a0f1e;
+  --accent-yellow: #FFE000;
+  --accent-orange: #FFA500;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================
+   Base Styles (preserve existing behavior)
+   ============================================ */
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -9,6 +23,7 @@
 html {
   height: 100%;
   height: -webkit-fill-available;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -18,6 +33,9 @@ body {
   overscroll-behavior: none;
   position: fixed;
   width: 100%;
+  background: var(--bg-primary);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 /* Fix full-height on mobile browsers */
@@ -26,20 +44,257 @@ body > * {
   height: 100%;
 }
 
-/* Hide scrollbars */
+canvas {
+  display: block;
+}
+
+/* ============================================
+   Animated Mesh Gradient Background
+   ============================================ */
+.animated-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    var(--bg-primary) 0%,
+    #0d1432 20%,
+    #1a0d2e 40%,
+    #0a0f1e 60%,
+    #14092e 80%,
+    var(--bg-primary) 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 25%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 75%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ============================================
+   Floating Particle System (CSS-only)
+   ============================================ */
+.particles::before,
+.particles::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Small floating dots */
+.particles::before {
+  background:
+    radial-gradient(circle, rgba(255, 224, 0, 0.3) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 165, 0, 0.2) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 300px 300px, 500px 500px, 400px 400px;
+  background-position: 0 0, 50px 100px, 100px 50px;
+  animation: particlesFloat 20s linear infinite;
+  opacity: 0.6;
+}
+
+/* Larger sparkles */
+.particles::after {
+  background:
+    radial-gradient(circle, rgba(255, 224, 0, 0.15) 2px, transparent 2px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 2px, transparent 2px);
+  background-size: 250px 250px, 350px 350px;
+  background-position: 75px 25px, 150px 125px;
+  animation: particlesFloat 25s linear infinite reverse;
+  opacity: 0.4;
+}
+
+@keyframes particlesFloat {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-30px) translateX(15px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+}
+
+/* ============================================
+   Keyframe Animations
+   ============================================ */
+
+/* Fade In */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide Up */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale In */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 224, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 224, 0, 0.8);
+  }
+}
+
+/* Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Count Up */
+@keyframes countUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Float */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+/* Hide scrollbars (enhanced) */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 
-/* Safe area support */
+/* Glass-morphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+/* Yellow Glow */
+.glow-yellow {
+  box-shadow:
+    0 0 10px rgba(255, 224, 0, 0.5),
+    0 0 30px rgba(255, 224, 0, 0.3),
+    0 0 60px rgba(255, 224, 0, 0.1);
+}
+
+/* Gradient Text */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animation Utilities */
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-countUp {
+  animation: countUp 0.3s ease forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ============================================
+   Safe Area Support
+   ============================================ */
 .pt-safe-top {
   padding-top: env(safe-area-inset-top, 0px);
-}
-
-canvas {
-  display: block;
 }
