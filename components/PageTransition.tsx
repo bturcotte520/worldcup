@@ -21,12 +21,12 @@ export default function PageTransition({ children, className = "", style }: Page
     <div
       className={className}
       style={{
+        ...style,
         opacity: isVisible ? (style?.opacity ?? 1) : 0,
         transform: isVisible ? (style?.transform ?? "translateY(0)") : "translateY(20px)",
         transition: style?.transition
           ? `opacity 0.4s ease-out, transform 0.4s ease-out, ${style.transition}`
           : "opacity 0.4s ease-out, transform 0.4s ease-out",
-        ...style,
       }}
     >
       {children}
