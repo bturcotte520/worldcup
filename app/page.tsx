@@ -47,9 +47,10 @@ export default function Home() {
         />
       )}
 
-      {/* Bottom sheet when a country is selected */}
+      {/* Bottom sheet when a country is selected - keyed to only animate on initial mount */}
       {selected && (
         <div
+          key={selected.code}
           className="absolute bottom-0 left-0 right-0 z-20"
           style={{
             animation: "slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",

@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import GameOverScreen from "@/components/GameOverScreen";
 import MatchIntro from "@/components/MatchIntro";
-import PageTransition from "@/components/PageTransition";
 
 const SoccerGame = dynamic(() => import("@/components/SoccerGame"), {
   ssr: false,
@@ -55,7 +54,6 @@ function GamePageContent() {
   const handleRematch = () => {
     setFinalScore(null);
     setGameKey((k) => k + 1);
-    setShowIntro(true);
   };
 
   const handleChangeTeam = () => {
@@ -74,11 +72,12 @@ function GamePageContent() {
   }
 
   return (
-    <PageTransition
+    <div
       className="relative w-full h-full"
       style={{
         opacity: isExiting ? 0 : 1,
-        transition: "opacity 0.3s ease-out",
+        transform: isExiting ? "translateY(-10px)" : "translateY(0)",
+        transition: "opacity 0.3s ease-out, transform 0.3s ease-out",
       }}
     >
       {showIntro && (
@@ -103,7 +102,7 @@ function GamePageContent() {
           onChangeTeam={handleChangeTeam}
         />
       )}
-    </PageTransition>
+    </div>
   );
 }
 
