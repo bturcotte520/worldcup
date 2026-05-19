@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import GameOverScreen from "@/components/GameOverScreen";
+import MatchIntro from "@/components/MatchIntro";
+
+const EXIT_TRANSITION_MS = 300;
 
 const SoccerGame = dynamic(() => import("@/components/SoccerGame"), {
   ssr: false,
@@ -30,6 +33,8 @@ function GamePageContent() {
   const [aiCountry, setAiCountry] = useState<Country | null>(null);
   const [gameKey, setGameKey] = useState(0);
   const [finalScore, setFinalScore] = useState<{ player: number; ai: number } | null>(null);
+  const [showIntro, setShowIntro] = useState(true);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     const code = params.get("team");
@@ -39,6 +44,10 @@ function GamePageContent() {
     setPlayerCountry(player);
     setAiCountry(ai);
   }, [params]);
+
+  const handleIntroComplete = useCallback(() => {
+    setShowIntro(false);
+  }, []);
 
   const handleGameEnd = (score: { player: number; ai: number }) => {
     setFinalScore(score);
@@ -50,7 +59,10 @@ function GamePageContent() {
   };
 
   const handleChangeTeam = () => {
-    router.push("/");
+    setIsExiting(true);
+    setTimeout(() => {
+      router.push("/");
+    }, EXIT_TRANSITION_MS);
   };
 
   if (!playerCountry || !aiCountry) {
@@ -62,7 +74,21 @@ function GamePageContent() {
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div
+      className="relative w-full h-full"
+      style={{
+        opacity: isExiting ? 0 : 1,
+        transform: isExiting ? "translateY(-10px)" : "translateY(0)",
+        transition: `opacity ${EXIT_TRANSITION_MS}ms ease-out, transform ${EXIT_TRANSITION_MS}ms ease-out`,
+      }}
+    >
+      {showIntro && (
+        <MatchIntro
+          playerCountry={playerCountry}
+          aiCountry={aiCountry}
+          onComplete={handleIntroComplete}
+        />
+      )}
       <SoccerGame
         key={gameKey}
         playerCountry={playerCountry}
