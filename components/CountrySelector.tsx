@@ -187,10 +187,10 @@ function GroupPill({ label, icon, isActive, onClick, delay }: { label: string; i
           ? "bg-yellow-400 text-black animate-pulse-ring"
           : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white/80"
       }`}
-      style={{
+      style={isActive ? {
         animationDelay: `${delay * 60}ms`,
         animationFillMode: "backwards",
-      }}
+      } : undefined}
     >
       <span className="mr-1">{icon}</span>
       {label}
@@ -221,7 +221,7 @@ function CountryCard({ country, onSelect, isSelected, delay }: { country: Countr
         animation: "fadeIn 0.4s ease forwards, slideUp 0.4s ease forwards",
         animationDelay: `${delay * 40}ms, ${delay * 40}ms`,
         animationFillMode: "backwards",
-        opacity: 0,
+      }}
       }}
     >
       {/* Shimmer overlay */}
@@ -253,7 +253,7 @@ function CountryCard({ country, onSelect, isSelected, delay }: { country: Countr
           <div className="font-bold text-white text-sm leading-tight truncate">{country.name}</div>
           <div
             className="text-xs font-medium mt-0.5 truncate"
-            style={{ color: `${country.primaryColor}cc` === "#FFFFFFcc" ? "#aaa" : country.primaryColor + "cc" }}
+            style={{ color: `${country.primaryColor}cc`.toUpperCase() === "#FFFFFFCC" ? "#aaa" : country.primaryColor + "cc" }}
           >
             {country.group}
           </div>
