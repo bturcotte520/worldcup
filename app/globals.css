@@ -298,3 +298,807 @@ canvas {
 .pt-safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* ============================================
+   GameOverScreen - Result Icon Animations
+   ============================================ */
+
+/* Victory - golden glow pulsing */
+@keyframes victoryGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 224, 0, 0.4)) drop-shadow(0 0 20px rgba(255, 165, 0, 0.2));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 224, 0, 0.8)) drop-shadow(0 0 40px rgba(255, 165, 0, 0.5));
+    transform: scale(1.05);
+  }
+}
+
+.result-glow {
+  animation: victoryGlow 2s ease-in-out infinite;
+}
+
+/* Rising star particles for victory */
+@keyframes starRise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1) rotate(180deg);
+  }
+}
+
+.star-particle {
+  position: absolute;
+  color: #FFE000;
+  font-size: 0.75rem;
+  pointer-events: none;
+  animation: starRise 1.5s ease-out infinite;
+}
+
+.star-1 {
+  top: 0;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.star-2 {
+  top: 10%;
+  right: 15%;
+  animation-delay: 0.3s;
+}
+
+.star-3 {
+  top: -5%;
+  left: 40%;
+  animation-delay: 0.6s;
+}
+
+.star-4 {
+  top: 5%;
+  left: 5%;
+  animation-delay: 0.9s;
+}
+
+.star-5 {
+  top: 15%;
+  right: 5%;
+  animation-delay: 1.2s;
+}
+
+/* Draw - subtle wiggle */
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-8deg);
+  }
+  30% {
+    transform: rotate(8deg);
+  }
+  45% {
+    transform: rotate(-5deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+.result-icon-draw {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+/* Defeat - sad shake */
+@keyframes sadShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+.result-icon-defeat {
+  animation: sadShake 0.8s ease-in-out 3;
+}
+
+/* Defeat - determined flip */
+@keyframes determinedFlip {
+  0% {
+    transform: scale(0.5) rotateY(180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotateY(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.result-icon-determined {
+  animation: determinedFlip 0.6s ease-out;
+}
+
+/* ============================================
+   GameOverScreen - Result Text Animations
+   ============================================ */
+
+/* VICTORY - text-gradient gold shimmer */
+@keyframes textShimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.result-text-victory {
+  background: linear-gradient(
+    90deg,
+    #FFE000 0%,
+    #FFFFFF 25%,
+    #FFE000 50%,
+    #FFA500 75%,
+    #FFE000 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 3s linear infinite;
+}
+
+/* DRAW - subtle pulse */
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+.result-text-draw {
+  color: #FFFFFF;
+  animation: textPulse 2.5s ease-in-out infinite;
+}
+
+/* DEFEAT - red fade-in */
+@keyframes redFadeIn {
+  0% {
+    opacity: 0;
+    color: #FF3333;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    color: #FF6B6B;
+    transform: translateY(0);
+  }
+}
+
+.result-text-defeat {
+  animation: redFadeIn 0.8s ease-out forwards;
+}
+
+/* ============================================
+   GameOverScreen - Ambient Background Particles
+   ============================================ */
+
+/* Victory particles - gold/warm */
+@keyframes particlesRiseVictory {
+  0% {
+    opacity: 0;
+    transform: translateY(100vh) scale(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20vh) scale(1);
+  }
+}
+
+.particles-victory::before,
+.particles-victory::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particles-victory::before {
+  background:
+    radial-gradient(circle, rgba(255, 224, 0, 0.6) 2px, transparent 2px),
+    radial-gradient(circle, rgba(255, 165, 0, 0.4) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 200px 200px, 300px 300px, 150px 150px;
+  background-position: 25% 75%, 75% 50%, 50% 90%;
+  animation: particlesRiseVictory 6s linear infinite;
+}
+
+.particles-victory::after {
+  background:
+    radial-gradient(circle, rgba(255, 224, 0, 0.3) 3px, transparent 3px),
+    radial-gradient(circle, rgba(255, 200, 0, 0.2) 2px, transparent 2px);
+  background-size: 250px 250px, 180px 180px;
+  background-position: 10% 60%, 80% 80%;
+  animation: particlesRiseVictory 8s linear infinite reverse;
+}
+
+/* Draw particles - neutral */
+@keyframes particlesFloatNeutral {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-15px);
+  }
+}
+
+.particles-draw::before,
+.particles-draw::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particles-draw::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+    radial-gradient(circle, rgba(200, 200, 200, 0.2) 1px, transparent 1px);
+  background-size: 350px 350px, 400px 400px;
+  background-position: 30% 40%, 70% 60%;
+  animation: particlesFloatNeutral 4s ease-in-out infinite;
+}
+
+.particles-draw::after {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.15) 2px, transparent 2px);
+  background-size: 200px 200px;
+  background-position: 50% 50%;
+  animation: particlesFloatNeutral 5s ease-in-out infinite reverse;
+}
+
+/* Defeat particles - cool blue */
+@keyframes particlesFallDefeat {
+  0% {
+    opacity: 0;
+    transform: translateY(-20vh) scale(0);
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) scale(1);
+  }
+}
+
+.particles-defeat::before,
+.particles-defeat::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particles-defeat::before {
+  background:
+    radial-gradient(circle, rgba(100, 150, 255, 0.5) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(50, 100, 200, 0.3) 1px, transparent 1px);
+  background-size: 250px 250px, 350px 350px;
+  background-position: 20% 20%, 80% 10%;
+  animation: particlesFallDefeat 7s linear infinite;
+}
+
+.particles-defeat::after {
+  background:
+    radial-gradient(circle, rgba(80, 120, 220, 0.4) 2px, transparent 2px);
+  background-size: 300px 300px;
+  background-position: 50% 0%;
+  animation: particlesFallDefeat 9s linear infinite reverse;
+}
+
+/* ============================================
+   GameOverScreen - Button Styles
+   ============================================ */
+
+/* REMATCH button - gold gradient + shimmer + hover glow + press scale */
+.btn-rematch {
+  background: linear-gradient(135deg, #FFE000 0%, #FFA500 100%);
+  box-shadow:
+    0 4px 20px rgba(255, 200, 0, 0.4),
+    0 0 0 0 rgba(255, 200, 0, 0);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-rematch:hover {
+  box-shadow:
+    0 6px 30px rgba(255, 200, 0, 0.6),
+    0 0 40px rgba(255, 224, 0, 0.3);
+  transform: scale(1.02);
+}
+
+.btn-rematch:active {
+  transform: scale(0.97);
+  box-shadow:
+    0 2px 10px rgba(255, 200, 0, 0.3);
+}
+
+@keyframes btnShimmer {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.btn-rematch-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: btnShimmer 2.5s infinite;
+  pointer-events: none;
+}
+
+/* Change Team button - glass-morphism + hover brighten */
+.btn-change-team {
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.btn-change-team:hover {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  transform: scale(1.01);
+}
+
+.btn-change-team:active {
+  transform: scale(0.98);
+}
+
+/* ============================================
+   GameOverScreen - Result Icon Animations
+   ============================================ */
+
+/* Victory - golden glow pulsing */
+@keyframes victoryGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 224, 0, 0.4)) drop-shadow(0 0 20px rgba(255, 165, 0, 0.2));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 224, 0, 0.8)) drop-shadow(0 0 40px rgba(255, 165, 0, 0.5));
+    transform: scale(1.05);
+  }
+}
+
+.result-glow {
+  animation: victoryGlow 2s ease-in-out infinite;
+}
+
+/* Rising star particles for victory */
+@keyframes starRise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1) rotate(180deg);
+  }
+}
+
+.star-particle {
+  position: absolute;
+  color: #FFE000;
+  font-size: 0.75rem;
+  pointer-events: none;
+  animation: starRise 1.5s ease-out infinite;
+}
+
+.star-1 {
+  top: 0;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.star-2 {
+  top: 10%;
+  right: 15%;
+  animation-delay: 0.3s;
+}
+
+.star-3 {
+  top: -5%;
+  left: 40%;
+  animation-delay: 0.6s;
+}
+
+.star-4 {
+  top: 5%;
+  left: 5%;
+  animation-delay: 0.9s;
+}
+
+.star-5 {
+  top: 15%;
+  right: 5%;
+  animation-delay: 1.2s;
+}
+
+/* Draw - subtle wiggle */
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-8deg);
+  }
+  30% {
+    transform: rotate(8deg);
+  }
+  45% {
+    transform: rotate(-5deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+  90% {
+    transform: rotate(2deg);
+  }
+}
+
+.result-icon-draw {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+/* Defeat - sad shake */
+@keyframes sadShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+.result-icon-defeat {
+  animation: sadShake 0.8s ease-in-out 3;
+}
+
+/* Defeat - determined flip */
+@keyframes determinedFlip {
+  0% {
+    transform: scale(0.5) rotateY(180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotateY(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.result-icon-determined {
+  animation: determinedFlip 0.6s ease-out;
+}
+
+/* ============================================
+   GameOverScreen - Result Text Animations
+   ============================================ */
+
+/* VICTORY - text-gradient gold shimmer */
+@keyframes textShimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.result-text-victory {
+  background: linear-gradient(
+    90deg,
+    #FFE000 0%,
+    #FFFFFF 25%,
+    #FFE000 50%,
+    #FFA500 75%,
+    #FFE000 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 3s linear infinite;
+}
+
+/* DRAW - subtle pulse */
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+.result-text-draw {
+  color: #FFFFFF;
+  animation: textPulse 2.5s ease-in-out infinite;
+}
+
+/* DEFEAT - red fade-in */
+@keyframes redFadeIn {
+  0% {
+    opacity: 0;
+    color: #FF3333;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    color: #FF6B6B;
+    transform: translateY(0);
+  }
+}
+
+.result-text-defeat {
+  animation: redFadeIn 0.8s ease-out forwards;
+}
+
+/* ============================================
+   GameOverScreen - Ambient Background Particles
+   ============================================ */
+
+/* Victory particles - gold/warm */
+@keyframes particlesRiseVictory {
+  0% {
+    opacity: 0;
+    transform: translateY(100vh) scale(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20vh) scale(1);
+  }
+}
+
+.particles-victory::before,
+.particles-victory::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particles-victory::before {
+  background:
+    radial-gradient(circle, rgba(255, 224, 0, 0.6) 2px, transparent 2px),
+    radial-gradient(circle, rgba(255, 165, 0, 0.4) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 200px 200px, 300px 300px, 150px 150px;
+  background-position: 25% 75%, 75% 50%, 50% 90%;
+  animation: particlesRiseVictory 6s linear infinite;
+}
+
+.particles-victory::after {
+  background:
+    radial-gradient(circle, rgba(255, 224, 0, 0.3) 3px, transparent 3px),
+    radial-gradient(circle, rgba(255, 200, 0, 0.2) 2px, transparent 2px);
+  background-size: 250px 250px, 180px 180px;
+  background-position: 10% 60%, 80% 80%;
+  animation: particlesRiseVictory 8s linear infinite reverse;
+}
+
+/* Draw particles - neutral */
+@keyframes particlesFloatNeutral {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-15px);
+  }
+}
+
+.particles-draw::before,
+.particles-draw::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particles-draw::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+    radial-gradient(circle, rgba(200, 200, 200, 0.2) 1px, transparent 1px);
+  background-size: 350px 350px, 400px 400px;
+  background-position: 30% 40%, 70% 60%;
+  animation: particlesFloatNeutral 4s ease-in-out infinite;
+}
+
+.particles-draw::after {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.15) 2px, transparent 2px);
+  background-size: 200px 200px;
+  background-position: 50% 50%;
+  animation: particlesFloatNeutral 5s ease-in-out infinite reverse;
+}
+
+/* Defeat particles - cool blue */
+@keyframes particlesFallDefeat {
+  0% {
+    opacity: 0;
+    transform: translateY(-20vh) scale(0);
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) scale(1);
+  }
+}
+
+.particles-defeat::before,
+.particles-defeat::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particles-defeat::before {
+  background:
+    radial-gradient(circle, rgba(100, 150, 255, 0.5) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(50, 100, 200, 0.3) 1px, transparent 1px);
+  background-size: 250px 250px, 350px 350px;
+  background-position: 20% 20%, 80% 10%;
+  animation: particlesFallDefeat 7s linear infinite;
+}
+
+.particles-defeat::after {
+  background:
+    radial-gradient(circle, rgba(80, 120, 220, 0.4) 2px, transparent 2px);
+  background-size: 300px 300px;
+  background-position: 50% 0%;
+  animation: particlesFallDefeat 9s linear infinite reverse;
+}
+
+/* ============================================
+   GameOverScreen - Button Styles
+   ============================================ */
+
+/* REMATCH button - gold gradient + shimmer + hover glow + press scale */
+.btn-rematch {
+  background: linear-gradient(135deg, #FFE000 0%, #FFA500 100%);
+  box-shadow:
+    0 4px 20px rgba(255, 200, 0, 0.4),
+    0 0 0 0 rgba(255, 200, 0, 0);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-rematch:hover {
+  box-shadow:
+    0 6px 30px rgba(255, 200, 0, 0.6),
+    0 0 40px rgba(255, 224, 0, 0.3);
+  transform: scale(1.02);
+}
+
+.btn-rematch:active {
+  transform: scale(0.97);
+  box-shadow:
+    0 2px 10px rgba(255, 200, 0, 0.3);
+}
+
+@keyframes btnShimmer {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.btn-rematch-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: btnShimmer 2.5s infinite;
+  pointer-events: none;
+}
+
+/* Change Team button - glass-morphism + hover brighten */
+.btn-change-team {
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.btn-change-team:hover {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  transform: scale(1.01);
+}
+
+.btn-change-team:active {
+  transform: scale(0.98);
+}
