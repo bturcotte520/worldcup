@@ -163,7 +163,7 @@ export default function CountrySelector({ onSelect }: Props) {
               className={`ripple-effect w-full py-3 rounded-xl font-bold text-sm tracking-wide text-black transition-all duration-200 ${
                 isPressed
                   ? "scale-95"
-                  : "hover:shadow-[0_0_25px_rgba(255,224,0,0.5)] active:scale-95"
+                  : "hover:shadow-[0_0_25px_rgba(255,224,0,0.5)]"
               }`}
               style={{
                 background: `linear-gradient(135deg, var(--accent-yellow), var(--accent-orange))`,
@@ -261,3 +261,4 @@ function CountryCard({ country, onSelect, isSelected, delay }: { country: Countr
     </button>
   );
 }
+
